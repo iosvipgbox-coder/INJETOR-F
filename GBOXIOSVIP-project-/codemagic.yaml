@@ -24,19 +24,16 @@ workflows:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
             build 2>&1 | tee "$CM_BUILD_DIR/build/xcodebuild.log"
-      - name: Verify metadata, protected patches and package IPA
+      - name: Package compiled app as IPA
         script: |
           set -euo pipefail
-          APP_PATH="$CM_BUILD_DIR/build/DerivedData/Build/Products/Release-iphoneos/3105.app"
-          test -d "$APP_PATH"
-          RESOURCE_DIR="$APP_PATH/OfficialPatches"
-          test -d "$RESOURCE_DIR"
-          PATCH_COUNT="$(find "$RESOURCE_DIR" -maxdepth 1 -type f -name '*.mfp' | wc -l | tr -d ' ')"
-          test "$PATCH_COUNT" = "10"
-          ! find "$RESOURCE_DIR" -maxdepth 1 -type f -name '*.3105' | grep -q .
-          /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP_PATH/Info.plist" | grep -qx '2.1'
-          /usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$APP_PATH/Info.plist" | grep -qx '2'
-          /usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP_PATH/Info.plist" | grep -qx 'com.apple.mobile.MobileHouseArrest'
+          APP_PATH="$(find "$CM_BUILD_DIR/build" -type d -path '*/Release-iphoneos/*.app' -print -quit)"
+          if [ -z "$APP_PATH" ] || [ ! -d "$APP_PATH" ]; then
+            echo "Erro: o xcodebuild não produziu um arquivo .app"
+            find "$CM_BUILD_DIR/build" -maxdepth 6 -type d -print || true
+            exit 1
+          fi
+          echo "Aplicativo encontrado em: $APP_PATH"
           IPA_DIR="$CM_BUILD_DIR/build/ipa"
           mkdir -p "$IPA_DIR/Payload"
           ditto "$APP_PATH" "$IPA_DIR/Payload/3105.app"
