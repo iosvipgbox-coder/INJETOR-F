@@ -1,0 +1,32 @@
+name: Descompactar ZIP na Raiz
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  unzip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar codigo do repositorio
+        uses: actions/checkout@v4
+
+      - name: Extrair arquivos ZIP
+        run: |
+          for file in *.zip; do
+            if [ -f "$file" ]; then
+              echo "Extraindo $file..."
+              unzip -o "$file" -d ./
+              rm -f "$file"
+            fi
+          done
+
+      - name: Salvar arquivos descompactados
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Descompactar GBOXIOSVIP-github-build.zip automaticamente"
+          branch: ${{ github.ref_name }}
+          skip_ci: true
