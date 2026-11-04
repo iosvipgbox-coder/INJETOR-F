@@ -6,16 +6,23 @@ workflows:
     environment:
       xcode: latest
     scripts:
-      - name: Check Xcode project
+      - name: Locate and check Xcode project
         script: |
           set -euo pipefail
-          xcodebuild -list -project "$CM_BUILD_DIR/ThreeOneOSFive.xcodeproj"
+          PROJECT_PATH=$(find "$CM_BUILD_DIR" -name "*.xcodeproj" -maxdepth 3 | head -n 1)
+          if [ -z "$PROJECT_PATH" ]; then
+            echo "Erro: .xcodeproj não encontrado."
+            exit 1
+          fi
+          echo "Projeto encontrado em: $PROJECT_PATH"
+          xcodebuild -list -project "$PROJECT_PATH"
       - name: Build unsigned GBOXIOSVIP app
         script: |
           set -o pipefail
+          PROJECT_PATH=$(find "$CM_BUILD_DIR" -name "*.xcodeproj" -maxdepth 3 | head -n 1)
           mkdir -p "$CM_BUILD_DIR/build/DerivedData/Build/Products/Release-iphoneos"
           xcodebuild \
-            -project "$CM_BUILD_DIR/ThreeOneOSFive.xcodeproj" \
+            -project "$PROJECT_PATH" \
             -target "3105" \
             -configuration Release \
             -sdk iphoneos \
