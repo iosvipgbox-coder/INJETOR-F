@@ -27,6 +27,6 @@ jobs:
       - name: Salvar arquivos descompactados
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Descompactar GBOXIOSVIP-github-build.zip automaticamente"
+          commit_message: "Descompactar GBOXIOSVIP-codemagic-sem-api.zip automaticamente"
           branch: ${{ github.ref_name }}
           skip_ci: true
