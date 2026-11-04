@@ -1,0 +1,43 @@
+name: Build iOS
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  build:
+    name: Compile iOS app
+    runs-on: macos-14
+    defaults:
+      run:
+        working-directory: GBOXIOSVIP-project-
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Build unsigned iOS app
+        run: |
+          xcodebuild \
+            -project ThreeOneOSFive.xcodeproj \
+            -scheme 3105 \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            build
+
+      - name: Upload compiled app
+        uses: actions/upload-artifact@v4
+        with:
+          name: GBOXIOSVIP-unsigned-app
+          path: ${{ runner.temp }}/DerivedData/Build/Products/Release-iphoneos/*.app
+          if-no-files-found: error
+          retention-days: 14
