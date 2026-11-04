@@ -1,0 +1,30 @@
+name: Build IPA iOS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-13
+    steps:
+      - name: Baixar codigo do repositorio
+        uses: actions/checkout@v4
+
+      - name: Compilar projeto Xcode
+        run: |
+          xcodebuild -project ThreeOneOSFive.xcodeproj \
+                     -scheme ThreeOneOSFive \
+                     -sdk iphoneos \
+                     -configuration Release \
+                     archive -archivePath build/App.xcarchive \
+                     CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOW_SIMULATOR=NO
+          
+          mkdir -p build/Payload
+          cp -r build/App.xcarchive/Products/Applications/ThreeOneOSFive.app build/Payload/
+          cd build && zip -r ThreeOneOSFive.ipa Payload
+
+      - name: Enviar IPA como Artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: GBOX-IPA-Pronto
+          path: build/ThreeOneOSFive.ipa
